@@ -84,27 +84,6 @@ services:
     ports:
       - "8000:8000"
 
-  planitt-admin:
-    build:
-      context: ./apps/planitt-admin
-    container_name: planitt-admin
-    environment:
-      NODE_ENV: "production"
-      NEXTAUTH_SECRET: "${PLANITT_ADMIN_SECRET:-7e44c48689495129508586168d82142656599305b7c80a003191902703392015}"
-      ADMIN_USERNAME: "${PLANITT_ADMIN_USERNAME:-admin}"
-      ADMIN_PASSWORD: "${PLANITT_ADMIN_PASSWORD:-123456}"
-      NEST_API_BASE_URL: "http://planitt-backend:3000"
-      NEST_API_INTERNAL_API_KEY: "${PLANITT_INTERNAL_API_KEY:-plnt_itn_ff661f02d517eb8a3f44b3795184acf286db51053e0315ca0286baa649a95f46}"
-      FASTAPI_BASE_URL: "http://signal-processing:8000"
-      FASTAPI_INTERNAL_API_KEY: "${PLANITT_PROCESSOR_INTERNAL_API_KEY:-plnt_prc_895132c65434571815668a098125436789012345678901234567890123456789}"
-    depends_on:
-      planitt-backend:
-        condition: service_started
-      signal-processing:
-        condition: service_started
-    ports:
-      - "3100:3000"
-
 volumes:
   planitt_ollama_data:
   planitt_mongo_data:

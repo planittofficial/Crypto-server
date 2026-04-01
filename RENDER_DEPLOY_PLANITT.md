@@ -5,7 +5,7 @@ This guide focuses on deploying the **NestJS backend** (MongoDB + public read AP
 ## 1) Deploy MongoDB Atlas
 1. Create a MongoDB Atlas cluster.
 2. Create a database user with read/write permissions for the `planitt` database.
-3. Get your connection string (e.g. `mongodb+srv://planittcrypto_db_user:XD0ITbU8bHCdhaE1@planitt.5hxwdty.mongodb.net/`).
+3. Get your connection string (e.g. `mongodb+srv://planitt:123@planitt.mongodb.net/`).
 
 ## 2) Deploy `planitt-backend` on Render (public)
 Create a **Web Service** for the NestJS backend.
@@ -39,10 +39,6 @@ Do not expose Ollama with a public port mapping.
 Recommended approach:
 - Run `ollama` and `signal-processing` in the same private Docker network (e.g. a Render private service + Docker, or a single container/microservice bundle).
 - Ensure the Docker configuration exposes Ollama only internally (use `expose`, not `ports`).
-
-In `docker-compose.planitt.yml`, this is already modeled as:
-- Ollama has `expose: 11434` and **no** `ports` mapping.
-- `signal-processing` points to Ollama via `http://ollama:11434`.
 
 ## 4) Internal API call flow
 1. FastAPI processor posts to the backend internal endpoint:
