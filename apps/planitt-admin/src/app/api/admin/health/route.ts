@@ -36,10 +36,10 @@ export async function GET() {
     );
   }
 
-  const nestBase = nestBaseEnv.value.replace(/\/$/, "");
+  const nestBase = nestBaseEnv.ok ? nestBaseEnv.value.replace(/\/$/, "") : "";
   const nestInternalApiKey = process.env.NEST_API_INTERNAL_API_KEY;
-  const fastapi = fastapiEnv.value.replace(/\/$/, "");
-  const fastapiKey = fastapiKeyEnv.value;
+  const fastapi = fastapiEnv.ok ? fastapiEnv.value.replace(/\/$/, "") : "";
+  const fastapiKey = fastapiKeyEnv.ok ? fastapiKeyEnv.value : "";
   const corr = correlationId("health");
   const nestPath = nestInternalApiKey ? "/internal/performance" : "/performance";
   const nestHeaders: Record<string, string> = { "x-correlation-id": corr };
