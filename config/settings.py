@@ -131,6 +131,8 @@ class Settings(BaseSettings):
     LOG_LEVEL: str = "INFO"
     LOG_FORMAT: str = "%(asctime)s - %(name)s - %(levelname)s - %(message)s"
     LOG_FILE: str = "logs/app.log"
+    # Avoid file-lock contention on bind mounts during local Docker reload.
+    LOG_TO_FILE: bool = os.getenv("LOG_TO_FILE", "false").lower() == "true"
 
     # Monitoring
     ENABLE_PROMETHEUS: bool = True

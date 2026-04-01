@@ -17,6 +17,20 @@ Create a **Web Service** for the NestJS backend.
 - `JWT_SECRET=<generate-a-strong-secret>`
 - `PLANITT_INTERNAL_API_KEY=<shared-internal-api-key>`
 
+## 2.1) Deploy `planitt-admin` on Netlify (public)
+The admin app does not call Render directly from the browser. It uses server-side Next.js route handlers, so Netlify environment variables must be configured correctly.
+
+### Required Netlify environment variables
+- `NEST_API_BASE_URL=https://planitt-backend-crypto.onrender.com`
+- `NEST_API_INTERNAL_API_KEY=<same-as-PLANITT_INTERNAL_API_KEY>`
+- `FASTAPI_BASE_URL=<your-fastapi-service-url>`
+- `FASTAPI_INTERNAL_API_KEY=<same-as-PLANITT_PROCESSOR_INTERNAL_API_KEY>`
+- `NEXTAUTH_SECRET=<strong-random-secret>`
+- `ADMIN_USERNAME=<admin-user>`
+- `ADMIN_PASSWORD=<admin-password>`
+
+If `NEST_API_INTERNAL_API_KEY` is omitted, admin routes fall back to JWT mode and require `NEST_API_JWT`.
+
 ### CORS
 The backend enables CORS permissively via `app.enableCors({ origin: true, credentials: true })`.
 If you need to restrict origins, update `main.ts` to use a concrete whitelist.
@@ -29,7 +43,7 @@ The FastAPI service is the **signal-processing engine** and is only meant to cal
 - `LLM_PROVIDER=ollama`
 - `OLLAMA_BASE_URL=http://ollama:11434` (when using Docker networking)
 - `OLLAMA_MODEL=mistral` (or your chosen model)
-- `PLANITT_BACKEND_BASE_URL=<your-backend-origin>` (example: `https://<your-backend>.onrender.com`)
+- `PLANITT_BACKEND_BASE_URL=<your-backend-origin>` (example: `https://planitt-backend-crypto.onrender.com`)
 - `PLANITT_BACKEND_INTERNAL_API_KEY=<same-as-planitt-backend>`
 - `PLANITT_PROCESSOR_INTERNAL_API_KEY=<any-internal-key>`
 - `PLANITT_MIN_CONFIDENCE=70`
@@ -48,6 +62,10 @@ Recommended approach:
 3. Clients fetch public signals with:
    - `GET /signals` and `GET /signals/:id`
    - Header: `Authorization: Bearer <JWT>`
+
+Note on naming:
+- `NEST_API_BASE_URL`: used by Netlify admin server routes.
+- `PLANITT_BACKEND_BASE_URL`: used by FastAPI processor when forwarding to Nest backend.
 
 ## 5) Notes / gaps
 - This repo scaffolds JWT validation but does not include login/signup endpoints for generating JWTs.

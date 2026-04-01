@@ -84,6 +84,14 @@ pytest --maxfail=1 --disable-warnings -q
 
 - New admin dashboard lives at `apps/planitt-admin`.
 - Cutover/migration guide: `ADMIN_DASHBOARD_CUTOVER.md`.
+- Production admin deployment (`planitt-crypto.netlify.app`) uses server-side Next routes.
+- Set these Netlify environment variables for admin API calls:
+  - `NEST_API_BASE_URL=https://planitt-backend-crypto.onrender.com`
+  - `NEST_API_INTERNAL_API_KEY=<same value as backend PLANITT_INTERNAL_API_KEY>`
+  - `FASTAPI_BASE_URL=<deployed FastAPI processor URL>`
+  - `FASTAPI_INTERNAL_API_KEY=<same value as PLANITT_PROCESSOR_INTERNAL_API_KEY>`
+  - `NEXTAUTH_SECRET`, `ADMIN_USERNAME`, `ADMIN_PASSWORD`
+- Important naming: `NEST_API_BASE_URL` is for admin panel routes, while `PLANITT_BACKEND_BASE_URL` is for FastAPI processor-to-backend calls.
 
 ---
 

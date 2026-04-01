@@ -13,10 +13,6 @@ from config.settings import settings
 def setup_logging():
     """Configure application logging"""
 
-    # Create logs directory if it doesn't exist
-    log_dir = Path(settings.LOG_FILE).parent
-    log_dir.mkdir(parents=True, exist_ok=True)
-
     # Create logger
     logger = logging.getLogger()
     logger.setLevel(getattr(logging, settings.LOG_LEVEL))
@@ -38,14 +34,22 @@ def setup_logging():
     console_handler.setFormatter(console_format)
     logger.addHandler(console_handler)
 
-    # File handler with rotation
-    file_handler = logging.handlers.RotatingFileHandler(
-        settings.LOG_FILE,
-        maxBytes=10 * 1024 * 1024,  # 10MB
-        backupCount=5,
-    )
-    file_handler.setLevel(getattr(logging, settings.LOG_LEVEL))
-    file_handler.setFormatter(console_format)
-    logger.addHandler(file_handler)
+    if settings.LOG_TO_FILE:
+        # Create logs directory only when file logging is enabled.
+        log_dir = Path(settings.LOG_FILE).parent
+        log_dir.mkdir(parents=True, exist_ok=True)
 
-    logger.info(f"Logging configured - Level: {settings.LOG_LEVEL}")
+        # File handler with rotation
+        file_handler = logging.handlers.RotatingFileHandler(
+            settings.LOG_FILE,
+            maxBytes=10 * 1024 * 1024,  # 10MB
+            backupCount=5,
+        )
+        file_handler.setLevel(getattr(logging, settings.LOG_LEVEL))
+        file_handler.setFormatter(console_format)
+        logger.addHandler(file_handler)
+
+    logger.info(
+        f"Logging configured - Level: {settings.LOG_LEVEL}, "
+        f"file_logging={'enabled' if settings.LOG_TO_FILE else 'disabled'}"
+    )

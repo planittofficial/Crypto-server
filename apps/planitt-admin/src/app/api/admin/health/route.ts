@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { requireAdmin } from "@/lib/server/guard";
-import { mustEnv } from "@/lib/server/env";
 import { correlationId } from "@/lib/api/fetcher";
+import { safeMustEnv } from "@/lib/server/upstream";
 
 async function statusCheck(url: string, headers?: Record<string, string>) {
   try {
@@ -16,17 +16,49 @@ export async function GET() {
   const auth = await requireAdmin();
   if (!auth.ok) return auth.response;
 
-  const nestBase = mustEnv("NEST_API_BASE_URL").replace(/\/$/, "");
+  const nestBaseEnv = safeMustEnv("NEST_API_BASE_URL");
+  const fastapiEnv = safeMustEnv("FASTAPI_BASE_URL");
+  const fastapiKeyEnv = safeMustEnv("FASTAPI_INTERNAL_API_KEY");
+  const missingEnvVars: string[] = [];
+  if (!nestBaseEnv.ok) missingEnvVars.push("NEST_API_BASE_URL");
+  if (!fastapiEnv.ok) missingEnvVars.push("FASTAPI_BASE_URL");
+  if (!fastapiKeyEnv.ok) missingEnvVars.push("FASTAPI_INTERNAL_API_KEY");
+
+  if (missingEnvVars.length > 0) {
+    return NextResponse.json(
+      {
+        checked_at: new Date().toISOString(),
+        status: "misconfigured",
+        missing_env_vars: missingEnvVars,
+        hint: "Set these environment variables in Netlify and redeploy.",
+      },
+      { status: 500 },
+    );
+  }
+
+  const nestBase = nestBaseEnv.value.replace(/\/$/, "");
   const nestInternalApiKey = process.env.NEST_API_INTERNAL_API_KEY;
-  const fastapi = mustEnv("FASTAPI_BASE_URL").replace(/\/$/, "");
-  const fastapiKey = mustEnv("FASTAPI_INTERNAL_API_KEY");
+  const fastapi = fastapiEnv.value.replace(/\/$/, "");
+  const fastapiKey = fastapiKeyEnv.value;
   const corr = correlationId("health");
   const nestPath = nestInternalApiKey ? "/internal/performance" : "/performance";
   const nestHeaders: Record<string, string> = { "x-correlation-id": corr };
   if (nestInternalApiKey) {
     nestHeaders["x-api-key"] = nestInternalApiKey;
   } else {
-    nestHeaders.Authorization = `Bearer ${mustEnv("NEST_API_JWT")}`;
+    const jwtEnv = safeMustEnv("NEST_API_JWT");
+    if (!jwtEnv.ok) {
+      return NextResponse.json(
+        {
+          checked_at: new Date().toISOString(),
+          status: "misconfigured",
+          missing_env_vars: ["NEST_API_JWT"],
+          hint: "Set NEST_API_INTERNAL_API_KEY or provide NEST_API_JWT in Netlify.",
+        },
+        { status: 500 },
+      );
+    }
+    nestHeaders.Authorization = `Bearer ${jwtEnv.value}`;
   }
 
   const [nest, fast, news, market] = await Promise.all([

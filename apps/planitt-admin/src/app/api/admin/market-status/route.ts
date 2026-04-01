@@ -1,26 +1,29 @@
 import { NextResponse } from "next/server";
 import { requireAdmin } from "@/lib/server/guard";
-import { mustEnv } from "@/lib/server/env";
 import { correlationId } from "@/lib/api/fetcher";
+import { fetchUpstream, safeMustEnv } from "@/lib/server/upstream";
 
 export async function GET() {
   const auth = await requireAdmin();
   if (!auth.ok) return auth.response;
 
-  const fastapi = mustEnv("FASTAPI_BASE_URL").replace(/\/$/, "");
-  const apiKey = mustEnv("FASTAPI_INTERNAL_API_KEY");
+  const fastapiEnv = safeMustEnv("FASTAPI_BASE_URL");
+  if (!fastapiEnv.ok) return fastapiEnv.response;
+  const apiKeyEnv = safeMustEnv("FASTAPI_INTERNAL_API_KEY");
+  if (!apiKeyEnv.ok) return apiKeyEnv.response;
+  const fastapi = fastapiEnv.value.replace(/\/$/, "");
+  const apiKey = apiKeyEnv.value;
   const url = `${fastapi}/api/v1/signals/market/status`;
-  const res = await fetch(url, {
-    headers: {
-      "x-api-key": apiKey,
-      "x-correlation-id": correlationId("market"),
+  return fetchUpstream(
+    url,
+    {
+      headers: {
+        "x-api-key": apiKey,
+        "x-correlation-id": correlationId("market"),
+      },
+      cache: "no-store",
     },
-    cache: "no-store",
-  });
-  const text = await res.text();
-  return new NextResponse(text, {
-    status: res.status,
-    headers: { "content-type": "application/json" },
-  });
+    "fastapi",
+  );
 }
 
